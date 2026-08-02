@@ -537,7 +537,7 @@ def _session_visible_to_active_profile(session_profile, handler=None) -> bool:
 def _request_session_visibility_exempt(method: str, path: str | None) -> bool:
     if not path:
         return False
-    if method == "GET" and path == "/api/session":
+    if method == "GET" and path in {"/api/session", "/api/session/context-breakdown"}:
         # Detail-load owns profile mismatch handling so the frontend can switch
         # to the session's profile instead of treating a valid cross-profile
         # deep link as a deleted/stale session.
@@ -12553,6 +12553,31 @@ def handle_get(handler, parsed) -> bool:
         _handle_session_compress_status(handler, query.get("session_id", [""])[0])
         return True
 
+    if parsed.path == "/api/session/context-breakdown":
+        sid = parse_qs(parsed.query).get("session_id", [""])[0]
+        if not sid or not is_safe_session_id(sid):
+            return bad(handler, "session_id is required", status=400)
+        try:
+            session = get_session(sid, metadata_only=False)
+        except KeyError:
+            return bad(handler, "Session not found", status=404)
+        session_profile = getattr(session, "profile", None) or None
+        if not _session_visible_to_active_profile(session_profile, handler):
+            if session_profile:
+                return j(handler, {
+                    "error": "Session belongs to a different profile",
+                    "code": "session_profile_mismatch",
+                    "session_id": sid,
+                    "profile": session_profile,
+                }, status=409)
+            return bad(handler, "Session not found", status=404)
+        try:
+            from api.context_breakdown import context_breakdown_for_session
+            return j(handler, {"breakdown": context_breakdown_for_session(session)})
+        except Exception:
+            logger.exception("failed to compute context breakdown for session %s", sid)
+            return bad(handler, "Context breakdown unavailable", status=500)
+
     if parsed.path == "/api/session":
         import time as _time
         _t0 = _time.monotonic()
@@ -14840,6 +14865,7 @@ def handle_post(handler, parsed) -> bool:
                     )
                     s.threshold_tokens = 0
                     s.last_prompt_tokens = 0
+                    s.last_context_breakdown = None
                     from api.config import _evict_session_agent
 
                     _evict_session_agent(body["session_id"])

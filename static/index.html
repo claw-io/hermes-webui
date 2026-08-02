@@ -748,6 +748,11 @@
                 <span class="composer-mobile-context-detail" id="composerMobileContextTokens"></span>
                 <span class="composer-mobile-context-detail" id="composerMobileContextThreshold"></span>
                 <span class="composer-mobile-context-detail" id="composerMobileContextCost" style="display:none"></span>
+                <span class="context-breakdown-separator" aria-hidden="true"></span>
+                <span class="context-breakdown-heading">Estimated usage by category</span>
+                <span class="context-breakdown-state" id="contextBreakdownState" aria-live="polite"></span>
+                <span class="context-breakdown-bar" id="contextBreakdownBar" aria-hidden="true"></span>
+                <ul class="context-breakdown-list" id="contextBreakdownList" aria-label="Estimated context usage by category"></ul>
               </span>
               <button class="ctx-compress-btn composer-mobile-context-compress" id="composerMobileCtxCompressBtn" type="button" style="display:none"></button>
             </div>
@@ -1765,6 +1770,7 @@
 <script src="static/i18n.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/icons.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/assistant_turn_anchors.js?v=__WEBUI_VERSION__" defer></script>
+<script src="static/context-breakdown.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/ui.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/workspace.js?v=__WEBUI_VERSION__" defer></script>
 <script src="static/terminal.js?v=__WEBUI_VERSION__" defer></script>

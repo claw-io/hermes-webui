@@ -437,7 +437,7 @@ def test_gateway_runs_api_streaming_parses_real_run_events():
             b'\n',
             b'data: {"event":"message.delta","delta":"Hello"}\n',
             b'\n',
-            b'data: {"event":"run.completed","output":"Hello","usage":{"input_tokens":3,"output_tokens":1}}\n',
+            b'data: {"event":"run.completed","output":"Hello","usage":{"input_tokens":3,"output_tokens":1},"context_breakdown":{"categories":[{"id":"conversation","label":"Conversation","tokens":4}],"context_max":1000,"context_used":4,"estimated_total":4,"model":"test-model"}}\n',
             b'\n',
         ])
 
@@ -478,6 +478,9 @@ def test_gateway_runs_api_streaming_parses_real_run_events():
     assert final_text == "Hello"
     assert usage["input_tokens"] == 3
     assert usage["output_tokens"] == 1
+    assert usage["context_breakdown"]["categories"] == [
+        {"id": "conversation", "label": "Conversation", "tokens": 4}
+    ]
     assert events[0][0] == "approval"
     assert events[0][1]["description"] == "Dangerous command approval"
     assert events[0][1]["approval_id"] == "appr-1"

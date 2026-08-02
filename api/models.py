@@ -1212,6 +1212,7 @@ class Session:
                  context_engine_state=None,
                  context_length=None, threshold_tokens=None,
                  last_prompt_tokens=None,
+                 last_context_breakdown=None,
                  post_compression_context_tokens_estimate=None,
                  compression_recovery=None,
                  recommended_recovery_action=None,
@@ -1282,6 +1283,7 @@ class Session:
         self.context_length = context_length
         self.threshold_tokens = threshold_tokens
         self.last_prompt_tokens = last_prompt_tokens
+        self.last_context_breakdown = last_context_breakdown if isinstance(last_context_breakdown, dict) else None
         _post_compression_tokens = _parse_nonnegative_int(post_compression_context_tokens_estimate)
         self.post_compression_context_tokens_estimate = (
             _post_compression_tokens if _post_compression_tokens and _post_compression_tokens > 0 else None
@@ -1380,6 +1382,7 @@ class Session:
             'context_engine', 'compression_anchor_engine', 'compression_anchor_mode',
             'compression_anchor_details', 'context_engine_state',
             'context_length', 'threshold_tokens', 'last_prompt_tokens',
+            'last_context_breakdown',
             'post_compression_context_tokens_estimate',
             'compression_recovery', 'recommended_recovery_action',
             'compression_recovery_source_session_id', 'compression_recovery_action',

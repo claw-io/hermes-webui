@@ -555,6 +555,7 @@ def _run_gateway_runs_api_streaming(
         raise
 
     usage: dict = {}
+    context_breakdown: dict | None = None
     _publish_gateway_run_id(stream_id, run_id)
 
     url_events = f"{base_url.rstrip('/')}/v1/runs/{run_id}/events"
@@ -647,6 +648,8 @@ def _run_gateway_runs_api_streaming(
                     if stream_id in STREAM_PARTIAL_TEXT:
                         STREAM_PARTIAL_TEXT[stream_id] = output
                 usage.update({k: v for k, v in _gateway_stream_usage(payload).items() if v})
+                if isinstance(payload.get("context_breakdown"), dict):
+                    context_breakdown = dict(payload["context_breakdown"])
                 sse_event = "message"
                 continue
             if payload_event == "run.failed":
@@ -670,6 +673,8 @@ def _run_gateway_runs_api_streaming(
                     STREAM_PARTIAL_TEXT[stream_id] += delta
                 put_gateway_event("token", {"text": delta})
             usage.update({k: v for k, v in _gateway_stream_usage(payload).items() if v})
+    if context_breakdown is not None:
+        usage["context_breakdown"] = context_breakdown
     return final_text, usage
 
 
@@ -1245,8 +1250,18 @@ def _run_gateway_chat_streaming(
             s.workspace = str(workspace)
             s.model = model
             s.model_provider = model_provider
+            previous_context_breakdown = getattr(s, "last_context_breakdown", None)
+            try:
+                from api.context_breakdown import normalized_snapshot
+
+                gateway_breakdown = usage.get("context_breakdown") if isinstance(usage, dict) else None
+                if isinstance(gateway_breakdown, dict):
+                    s.last_context_breakdown = normalized_snapshot(gateway_breakdown, s)
+            except Exception:
+                logger.debug("Failed to persist gateway context breakdown", exc_info=True)
 
             def _restore_cancelled_success_writeback():
+                s.last_context_breakdown = previous_context_breakdown
                 if pending_source == "process_wakeup":
                     s.context_messages = previous_context
                     s.messages = previous_messages

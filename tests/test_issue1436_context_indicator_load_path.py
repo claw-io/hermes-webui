@@ -173,6 +173,7 @@ class TestIssue1436BackendFallback:
         s.workspace = "/tmp"
         s.threshold_tokens = 100_000
         s.last_prompt_tokens = 80_000
+        s.last_context_breakdown = {"status": "available", "model": "old-model", "categories": []}
         s.save = MagicMock()
         s.compact.return_value = {
             **s.compact.return_value,
@@ -204,6 +205,7 @@ class TestIssue1436BackendFallback:
         assert s.context_length == 1_000_000
         assert s.threshold_tokens == 0
         assert s.last_prompt_tokens == 0
+        assert s.last_context_breakdown is None
         s.save.assert_called_once()
         assert captured["data"]["session"]["context_length"] == 1_000_000
 

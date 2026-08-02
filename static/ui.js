@@ -5625,6 +5625,15 @@ function openComposerContextMenu(e){
     tooltip.setAttribute('aria-hidden','true');
   }
   openMobileComposerConfig();
+  const activeSessionId=String(S.session&&S.session.session_id||'');
+  if(window.ContextBreakdown&&activeSessionId){
+    const usage=(S.current&&S.current.last_usage)||S.lastUsage||{};
+    window.ContextBreakdown.load(
+      activeSessionId,
+      ()=>String(S.session&&S.session.session_id||''),
+      Number(usage.context_length)||Number(S.session&&S.session.context_length)||0
+    );
+  }
 }
 window.openComposerContextMenu=openComposerContextMenu;
 

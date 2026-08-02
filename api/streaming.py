@@ -10605,6 +10605,17 @@ def _run_agent_streaming(
                         s.threshold_tokens = int(_orig_thresh * _real_cap / _orig_cap)
                     else:
                         s.threshold_tokens = 0
+                try:
+                    from api.context_breakdown import normalized_snapshot
+                    from agent.context_breakdown import compute_session_context_breakdown
+
+                    raw_breakdown = compute_session_context_breakdown(
+                        agent,
+                        result.get('messages') or getattr(s, 'context_messages', None) or [],
+                    )
+                    s.last_context_breakdown = normalized_snapshot(raw_breakdown, s)
+                except Exception:
+                    logger.debug("Failed to persist local context breakdown", exc_info=True)
                 if not ephemeral and s.messages:
                     _latest_assistant_idx = next(
                         (idx for idx in range(len(s.messages) - 1, -1, -1)
